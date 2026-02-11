@@ -1,0 +1,175 @@
+#No of Airlines
+
+select count(airline_id) as No_of_Airlines from airlines;
+
+
+
+#No of aircrafts
+
+select count(Aircraft_Type_ID) as No_of_Aircrafts from aircrafttypes;
+
+
+
+
+
+#No_of_country,No_of states,no_of_city,total_passengers,Cover_distance,Total_operating_region
+
+select count(distinct destination_country) as No_of_Country, count(distinct destination_state) as No_of_States,
+count(distinct destination_city) as No_of_City, concat(round(sum(transported_passengers)/1000000,2),'M') as Total_passengers,
+concat(round(sum(distance)/1000000,2),'M',' ',"km") as Cover_distance, count(distinct carriers_operating_region) as Total_operating_region 
+from maindata_final
+join operating_region 
+on maindata_final.Region_code=operating_region.region_code;
+
+
+
+
+
+#Load factor percentage on a Yearly basis
+
+select year, concat(round(count(transported_passengers/available_seats)/1000,2), '%') as Load_factor 
+from maindata_final
+group by year
+order by Load_factor desc;
+
+
+
+
+
+#Load factor percentage on a Monthly basis
+
+select monthname(date) as "Month", concat(round(count(transported_passengers/available_seats)/1000,2),'%')as Load_factor 
+from maindata_final
+group by monthname(date)
+order by Load_factor desc;
+
+
+
+
+
+#Load factor percentage on a Quarterly basis
+
+select quarter(date) as Quarter_no, concat(round(count(transported_passengers/available_seats)/1000,2),'%') as Load_factor
+from maindata_final
+group by quarter_no
+order by Load_factor desc;
+
+
+
+
+
+
+#Load factor percentage on a carrier_name basis
+
+select carrier_name,concat(round(count(transported_passengers/available_seats)/1000,2),'%') as Load_factor
+from maindata_final
+group by Carrier_Name
+order by load_factor desc;
+
+
+
+
+
+
+#Top 10 Carrier_names based on Passengers preferences
+
+select carrier_name,count(transported_passengers) as Passengers
+from maindata_final
+group by Carrier_Name
+order by passengers desc
+limit 10;
+
+
+
+
+
+
+#Top routes (from_to_city) based on number of flights
+
+select from_to_city, count(Airline_ID) as No_of_Flights
+from maindata_final
+group by from_to_city
+order by No_of_flights desc
+limit 10;
+
+
+
+
+
+
+#Weekday/weekend  Occupied Load factor
+
+select weekend_weekday, count(transported_passengers/available_seats) as Load_factor
+from (select *,case 
+when weekday(date)=6 or weekday(date)=7 then "Weekend"
+else "Weekday"
+end as "Weekend_Weekday" from maindata_final)a
+group by weekend_weekday;
+
+
+
+
+
+#Number of flights based on Distance group
+
+select distance_interval, count(m.Distance_Group_ID) as Distance_group
+from distance_groups d join maindata_final m
+using (Distance_Group_ID)
+group by Distance_Interval
+order by distance_group desc
+limit 10;
+
+
+
+
+
+
+#Use the filters provide a search capability to find the flights between source country, source states,
+-- source city to destination country, destinstion state, destinstion city
+
+select origin_country, destination_country, origin_state, destination_state, origin_city, destination_city from maindata_final;
+
+
+
+
+
+
+#Carrier name wise Distance
+
+select carrier_name, concat(round(count(distance)/1000,2),'M') as Cover_distance
+from maindata_final
+group by carrier_name
+order by Cover_distance desc
+limit 10;
+
+
+
+
+
+
+#Transported passenger by Operating region
+
+select carriers_operating_region , count(transported_passengers) as Transported_passengers
+from operating_region join maindata_final
+on operating_region.Region_code=maindata_final.Region_Code
+group by carriers_operating_region
+order by Transported_Passengers desc;
+
+
+
+
+
+
+#Flight types with Available Seats
+
+select flight_type, count(available_seats) as Available_seats
+ from flighttypes join maindata_final
+ on flighttypes.datasource_id=maindata_final.Datasource_ID
+ group by flight_type
+ order by Available_Seats desc;
+
+
+
+
+
+
